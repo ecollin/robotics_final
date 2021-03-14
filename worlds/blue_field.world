@@ -103,33 +103,33 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <state world_name='default'>
-      <sim_time>151079 129000000</sim_time>
-      <real_time>53 681603220</real_time>
-      <wall_time>1615593176 795278050</wall_time>
-      <iterations>52378</iterations>
+      <sim_time>151271 333000000</sim_time>
+      <real_time>59 578687971</real_time>
+      <wall_time>1615693749 164298174</wall_time>
+      <iterations>58000</iterations>
       <model name='blue_room'>
-        <pose>-2.00207 3.83751 0 0 -0 0</pose>
+        <pose>-2.00146 3.84292 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='Wall_11'>
-          <pose>-2.00207 0.071848 0 0 -0 0</pose>
+          <pose>-2.00146 0.077256 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='Wall_12'>
-          <pose>-0.077075 3.99685 0 0 -0 1.5708</pose>
+          <pose>-0.07646 4.00226 0 0 -0 1.5708</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='Wall_13'>
-          <pose>-2.00207 7.92185 0 0 -0 3.14159</pose>
+          <pose>-2.00146 7.92726 0 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='Wall_14'>
-          <pose>-3.92707 3.99685 0 0 0 -1.5708</pose>
+          <pose>-3.92646 4.00226 0 0 0 -1.5708</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -146,10 +146,10 @@
         </link>
       </model>
       <model name='unit_cylinder_red'>
-        <pose>-2.84072 3.2744 0.490891 -1.7e-05 -1.7e-05 0</pose>
+        <pose>-2.31567 2.98281 0.490892 -1.7e-05 -1.7e-05 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose>-2.95403 2.60007 0.054897 -1.7e-05 -1.7e-05 0</pose>
+          <pose>-2.42898 2.30848 0.054898 -1.7e-05 -1.7e-05 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -161,7 +161,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>7.30645 5.11838 15.6717 -0 0.840165 -2.85154</pose>
+        <pose>11.5445 5.88298 19.7857 -0 0.840165 -2.85154</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -268,7 +268,7 @@
       </link>
       <static>0</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>-5.99884 -0.440643 0.490892 -1.7e-05 -1.7e-05 0</pose>
+      <pose>-2.31567 2.98281 0.490892 -1.7e-05 -1.7e-05 0</pose>
     </model>
     <model name='blue_room'>
       <pose>-0.071876 4.15934 0 0 -0 0</pose>
