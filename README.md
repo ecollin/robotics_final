@@ -3,7 +3,7 @@ Introduction to robotics final project. Teaching the robot to play "pong" with r
 
 roscore
 
-roslaunch robotics_final turtlebot3_pong.launch > launchout
+roslaunch robotics_final turtlebot3_pong.launch 
 
 rosrun robotics_final ball_move.py
 
