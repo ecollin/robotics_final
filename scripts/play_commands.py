@@ -29,6 +29,7 @@ class Play_commands:
         self.ball_command_pub = rospy.Publisher("robotics_final/BallCommand", BallCommand, queue_size=10)
         rospy.Subscriber("/robotics_final/ball_state", BallInitState, self.ball_state_received)
         rospy.Subscriber("/robotics_final/ball_result", BallResult, self.ball_result_received)
+        self.reward = -1
 
         self.initialized = True
 
@@ -53,8 +54,9 @@ class Play_commands:
         for i in range(10):
             self.reward = 0
             self.ball_command_pub.publish("send")
-            while (self.reward == 0):
+            while (self.reward == -1):
                 rospy.sleep(1)
+            self.reward = -1
         print("DONE")
         
         rospy.spin()

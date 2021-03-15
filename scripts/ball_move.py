@@ -117,6 +117,7 @@ class BallMove:
     def set_random_ball_state(self):
         ball_y = self.south_goal_line+(self.north_goal_line-self.south_goal_line)*uniform(0,1)
         ball_x = self.mid_field_x
+        print(f"Initializing random ball at x,y {ball_x} {ball_y} ")
         self.last_ball_x = float('inf')
         dy = ball_y - self.mid_goal_y
         dx = ball_x - self.mid_goal_x
@@ -130,6 +131,9 @@ class BallMove:
         
     def compute_reward(self):
         state = self.get_state('soccer_ball','world')
+        robot_state = self.get_state('turtlebot3_waffle_pi','world')
+        print(f'robot state in compute reward, x,y: {robot_state.pose.position.x} {robot_state.pose.position.y} ')
+
         g_top = 4.5
         g_bottom = 2.3
         g_left = -7
@@ -139,6 +143,7 @@ class BallMove:
         STILL_MOVING_REWARD = 0
         curr_ball_x = state.pose.position.x
         curr_ball_y = state.pose.position.y
+        print(f"before returning reward ball at x,y {curr_ball_x} {curr_ball_y}")
         if (curr_ball_x < g_right and curr_ball_x > g_left
             and curr_ball_y < g_top and curr_ball_y > g_bottom):
             print('Returning IN_GOAL_REWARD')

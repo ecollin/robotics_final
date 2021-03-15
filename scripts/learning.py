@@ -15,10 +15,16 @@ import math
 from random import randint, random, uniform
 from robotics_final.msg import BallCommand, BallResult, BallInitState
 
-
+from constants import NUM_POS_SENDS
 
 
 class Learn:
+
+    # Variables representing the actions
+    MOVE_LEFT = 0
+    STAY_PUT = 1
+    MOVE_RIGHT = 2
+
     def __init__(self):
         self.initialized = False
         rospy.init_node('learning_algorithm')
@@ -32,6 +38,12 @@ class Learn:
         self.reward_num = 0
         self.iter_num = 1
         self.initialized = True
+
+    def get_state_num(self):
+        robot_state = self.get_state('turtlebot3_waffle_pi','world')
+        ball_state = self.get_state('soccer_ball','world')
+        dx = robot_state.pose.position.x - ball_state.pose.position.x
+        dy = robot_state.pose.position.y - ball_state.pose.position.y
 
     def ball_state_received(self, data):
         print("Ball's initial state received")
