@@ -55,7 +55,7 @@ class BallMove:
         self.mid_field_x = -1.8
         self.mid_goal_x = -6.23
         self.mid_goal_y = 3.45
-        self.ball_velocity = 0.5
+        self.ball_velocity = 2
         
         self.get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
@@ -111,11 +111,16 @@ class BallMove:
 
         for i in range(10):
             goal_line = 0
+            save = 0
             self.set_random_ball_state()        
-            while (goal_line == 0):
+            while (goal_line == 0 and save == 0):
                 state = self.get_state('soccer_ball','world')
                 if (state.pose.position.x < self.mid_goal_x):
                     goal_line = 1
+                if ((state.twist.linear.x*state.twist.linear.x +
+                     state.twist.linear.y*state.twist.linear.y) < self.ball_velocity):
+                    print("saved!!")
+                    save = 1
 
         rospy.spin()
 
