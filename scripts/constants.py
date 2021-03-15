@@ -1,0 +1,1 @@
+NUM_POS_SENDS = 2
