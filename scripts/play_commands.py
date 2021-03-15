@@ -38,8 +38,8 @@ class Play_commands:
         print("ball starts at %2f , %2f @ %2f degrees" % (x, y, angle*180/math.pi))
 
     def ball_result_received(self, data: BallResult):
-        reward = data.reward
-        print("reward = %d" % reward)
+        self.reward = data.reward
+        print("reward = %d" % self.reward)
         
     def run(self):
         rate = rospy.Rate(1)
@@ -48,8 +48,11 @@ class Play_commands:
             rate.sleep()
             connections = self.ball_command_pub.get_num_connections()
 
-        self.ball_command_pub.publish("send")
-        
+        for i in range(10):
+            self.reward = 0
+            self.ball_command_pub.publish("send")
+            while (self.reward == 0):
+                rospy.sleep(1)
         
         rospy.spin()
 
