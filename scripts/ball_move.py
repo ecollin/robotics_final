@@ -105,22 +105,31 @@ class BallMove:
         dx = ball_x - self.mid_goal_x
         ball_angle = math.pi+math.atan(dy/dx) + uniform(-1,1)*math.pi/10
         self.set_start_ball(ball_x, ball_y, ball_angle, self.ball_velocity)
+
+    def ball_in_goal(self):
+        state = self.get_state('soccer_ball','world')
+        g_top = 4.5
+        g_bottom = 2.3
+        g_left = -7
+        g_right = -6.3
+        if (state.pose.position.x < g_right and state.pose.position.x > g_left
+            and state.pose.position.y < g_top and state.pose.position.y > g_bottom):
+            return 1
+        else:
+            return 0
         
+
     def run(self):
         rate = rospy.Rate(1)
 
         for i in range(10):
-            goal_line = 0
-            save = 0
             self.set_random_ball_state()        
-            while (goal_line == 0 and save == 0):
-                state = self.get_state('soccer_ball','world')
-                if (state.pose.position.x < self.mid_goal_x):
-                    goal_line = 1
-                if ((state.twist.linear.x*state.twist.linear.x +
-                     state.twist.linear.y*state.twist.linear.y) < self.ball_velocity):
-                    print("saved!!")
-                    save = 1
+            rospy.sleep(5)
+            goal = self.ball_in_goal()
+            if (goal == 1):
+                print("Goal!!")
+            else:
+                print("saved!!")
 
         rospy.spin()
 
