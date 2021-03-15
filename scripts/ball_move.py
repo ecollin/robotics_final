@@ -20,6 +20,8 @@ import numpy as np
 import math
 from random import randint, random, uniform
 
+from robotics_final.msg import BallCommand, BallResult, BallInitState
+
 def get_yaw_from_pose(p):
     """ A helper function that takes in a Pose object (geometry_msgs) and returns yaw"""
     yaw = (euler_from_quaternion([
@@ -47,6 +49,9 @@ class BallMove:
         # Setup publishers and subscribers
         # subscribe to the lidar scan from the robot
         rospy.Subscriber(self.scan_topic, LaserScan, self.robot_scan_received)
+        rospy.Subscriber("/robotics_final/BallCommand", BallCommand, self.command_received)
+        self.ball_state_pub = rospy.Publisher("robotics_final/ball_state", BallInitState, queue_size=10)
+        self.ball_res_pub = rospy.Publisher("robotics_final/ball_result", BallResult, queue_size=10)
 
         #setup the soccer field parameters
         self.south_goal_line = 0.415
@@ -63,10 +68,18 @@ class BallMove:
         self.initialized = True
 
 
+    def command_received(self, data: BallCommand):
+        if (data.command == "send"):
+            self.send_ball()
+        else:
+            print("error: unknown command, ball_move/command_received")
+        
+        
     def robot_scan_received(self, data):
         # wait until initialization is complete
         if not(self.initialized):
             return
+        
    
     def set_start_ball(self, x, y, theta, v):
         # help from: https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
@@ -105,7 +118,12 @@ class BallMove:
         dx = ball_x - self.mid_goal_x
         ball_angle = math.pi+math.atan(dy/dx) + uniform(-1,1)*math.pi/10
         self.set_start_ball(ball_x, ball_y, ball_angle, self.ball_velocity)
-
+        ball_state = BallInitState()
+        ball_state.x = ball_x
+        ball_state.y = ball_y
+        ball_state.angle = ball_angle
+        self.ball_state_pub.publish(ball_state)
+        
     def ball_in_goal(self):
         state = self.get_state('soccer_ball','world')
         g_top = 4.5
@@ -118,8 +136,18 @@ class BallMove:
         else:
             return 0
         
-
-    def run(self):
+    def send_ball(self):
+        self.set_random_ball_state()
+        rospy.sleep(5)
+        goal = self.ball_in_goal()
+        if (goal == 1):
+            reward = -10
+        else:
+            reward = 10
+        self.ball_res_pub.publish(reward)
+            
+            
+    def run_old(self):
         rate = rospy.Rate(1)
 
         for i in range(10):
@@ -133,7 +161,21 @@ class BallMove:
 
         rospy.spin()
 
-                         
+    def run(self):
+        rate = rospy.Rate(1)
+        connections = self.ball_state_pub.get_num_connections()
+        while connections < 1:
+            rate.sleep()
+            connections = self.ball_state_pub.get_num_connections()
+        connections = self.ball_res_pub.get_num_connections()
+        while connections < 1:
+            rate.sleep()
+            connections = self.ball_res_pub.get_num_connections()
+
+        rospy.spin()
+
+
+        
 if __name__=="__main__":
 
     bm = BallMove()
