@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+
+import rospy
+
+from geometry_msgs.msg import Quaternion, Point, Pose, PoseArray, PoseStamped, Twist
+from sensor_msgs.msg import LaserScan
+from std_msgs.msg import Header, String
+
+from gazebo_msgs.msg import ContactsState
+from gazebo_msgs.msg import ModelState
+from gazebo_msgs.srv import GetModelState
+from gazebo_msgs.srv import SetModelState
+
+import tf
+from tf import TransformListener
+from tf import TransformBroadcaster
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
+
+import numpy as np
+import math
+
+def get_yaw_from_pose(p):
+    """ A helper function that takes in a Pose object (geometry_msgs) and returns yaw"""
+    yaw = (euler_from_quaternion([
+            p.orientation.x,
+            p.orientation.y,
+            p.orientation.z,
+            p.orientation.w])
+            [2])
+    return yaw
+
+
+class BallMove:
+
+    def __init__(self):
+        # once everything is setup initialized will be set to true
+        self.initialized = False        
+        # initialize this particle filter node
+        rospy.init_node('ball_move')
+
+        self.base_frame = "base_footprint"
+        self.map_topic = "map"
+        self.odom_frame = "odom"
+        self.scan_topic = "scan"
+        
+        # Setup publishers and subscribers
+        # subscribe to the lidar scan from the robot
+        rospy.Subscriber(self.scan_topic, LaserScan, self.robot_scan_received)
+
+        self.get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+        self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+
+        self.initialized = True
+
+
+    def robot_scan_received(self, data):
+        # wait until initialization is complete
+        if not(self.initialized):
+            return
+   
+    def set_start_ball(self, x, y, theta, v):
+        state = ModelState()
+        state.model_name = 'soccer_ball'
+        state.reference_frame = 'world'  # ''ground_plane'
+        # pose
+        state.pose.position.x = x
+        state.pose.position.y = y
+        state.pose.position.z = 0
+        quaternion = tf.transformations.quaternion_from_euler(0, 0, 0)
+        state.pose.orientation.x = quaternion[0]
+        state.pose.orientation.y = quaternion[1]
+        state.pose.orientation.z = quaternion[2]
+        state.pose.orientation.w = quaternion[3]
+        # twist
+        state.twist.linear.x = math.cos(theta)*v
+        state.twist.linear.y = math.sin(theta)*v
+        state.twist.linear.z = 0
+        state.twist.angular.x = 0
+        state.twist.angular.y = 0
+        state.twist.angular.z = 0
+
+        rospy.wait_for_service('/gazebo/set_model_state')
+        try:
+            set_state = self.set_state
+            result = set_state(state)
+            assert result.success is True
+        except rospy.ServiceException:
+            print("/gazebo/get_model_state service call failed") 
+
+    def run(self):
+            rate = rospy.Rate(1)
+            self.set_start_ball(-1.8, 3.4, 19*math.pi/20, 1)
+            rospy.spin()
+
+                         
+if __name__=="__main__":
+
+    bm = BallMove()
+    bm.run()
+
+
+
+
+
+
+
+
