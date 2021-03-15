@@ -18,6 +18,7 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 import numpy as np
 import math
+from random import randint, random, uniform
 
 def get_yaw_from_pose(p):
     """ A helper function that takes in a Pose object (geometry_msgs) and returns yaw"""
@@ -47,6 +48,15 @@ class BallMove:
         # subscribe to the lidar scan from the robot
         rospy.Subscriber(self.scan_topic, LaserScan, self.robot_scan_received)
 
+        #setup the soccer field parameters
+        self.south_goal_line = 0.415
+        self.north_goal_line = 6.36
+        self.mid_field_y = 3.4
+        self.mid_field_x = -1.8
+        self.mid_goal_x = -6.23
+        self.mid_goal_y = 3.45
+        self.ball_velocity = 0.5
+        
         self.get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
 
@@ -59,6 +69,7 @@ class BallMove:
             return
    
     def set_start_ball(self, x, y, theta, v):
+        # help from: https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
         state = ModelState()
         state.model_name = 'soccer_ball'
         state.reference_frame = 'world'  # ''ground_plane'
@@ -85,12 +96,21 @@ class BallMove:
             result = set_state(state)
             assert result.success is True
         except rospy.ServiceException:
-            print("/gazebo/get_model_state service call failed") 
+            print("/gazebo/get_model_state service call failed")
 
+    def set_random_ball_state(self):
+        ball_y = self.south_goal_line+(self.north_goal_line-self.south_goal_line)*uniform(0,1)
+        ball_x = self.mid_field_x
+        dy = ball_y - self.mid_goal_y
+        dx = ball_x - self.mid_goal_x
+        ball_angle = math.pi+math.atan(dy/dx) + uniform(-1,1)*math.pi/10
+        self.set_start_ball(ball_x, ball_y, ball_angle, self.ball_velocity)
+        
     def run(self):
-            rate = rospy.Rate(1)
-            self.set_start_ball(-1.8, 3.4, 19*math.pi/20, 1)
-            rospy.spin()
+        rate = rospy.Rate(1)
+        self.set_random_ball_state()
+        
+        rospy.spin()
 
                          
 if __name__=="__main__":
