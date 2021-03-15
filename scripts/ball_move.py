@@ -108,8 +108,15 @@ class BallMove:
         
     def run(self):
         rate = rospy.Rate(1)
-        self.set_random_ball_state()
-        
+
+        for i in range(10):
+            goal_line = 0
+            self.set_random_ball_state()        
+            while (goal_line == 0):
+                state = self.get_state('soccer_ball','world')
+                if (state.pose.position.x < self.mid_goal_x):
+                    goal_line = 1
+
         rospy.spin()
 
                          
