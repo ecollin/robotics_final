@@ -23,9 +23,9 @@ ball position is set using te set_model_state rospy service proxy
 
 ball position is "get" using get_model_state rospy service proxy for detecting goal, or miss
 
-
 on receiving a "send" command on the ballcommand thread, the ball_move node randomly places the ball on the midfeild line and aims toward the goal with a random angle near center of the goal.
 
+play_commands.py setups up the publishers and subscribers for issuing ball send commands and reciving the ball position and state and the rewards. It then issues a ball send command and awaits a reward. this loops 10 times for now.
 
 
 
