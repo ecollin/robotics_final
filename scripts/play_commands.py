@@ -15,6 +15,8 @@ import math
 from random import randint, random, uniform
 from robotics_final.msg import BallCommand, BallResult, BallInitState
 
+from constants import NUM_POS_SENDS
+
 class Play_commands:
 
     def __init__(self):
@@ -53,6 +55,7 @@ class Play_commands:
             self.ball_command_pub.publish("send")
             while (self.reward == 0):
                 rospy.sleep(1)
+        print("DONE")
         
         rospy.spin()
 

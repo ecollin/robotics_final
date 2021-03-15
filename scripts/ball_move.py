@@ -20,6 +20,8 @@ import numpy as np
 import math
 from random import randint, random, uniform
 
+from constants import NUM_POS_SENDS
+
 from robotics_final.msg import BallCommand, BallResult, BallInitState
 
 def get_yaw_from_pose(p):
@@ -61,6 +63,7 @@ class BallMove:
         self.mid_goal_x = -6.23
         self.mid_goal_y = 3.45
         self.ball_velocity = 2
+        self.last_ball_x = float('inf')
         
         self.get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
@@ -114,9 +117,10 @@ class BallMove:
     def set_random_ball_state(self):
         ball_y = self.south_goal_line+(self.north_goal_line-self.south_goal_line)*uniform(0,1)
         ball_x = self.mid_field_x
+        self.last_ball_x = float('inf')
         dy = ball_y - self.mid_goal_y
         dx = ball_x - self.mid_goal_x
-        ball_angle = math.pi+math.atan(dy/dx) + uniform(-1,1)*math.pi/10
+        ball_angle = math.pi+math.atan(dy/dx) + uniform(-1,1)*math.pi/20
         self.set_start_ball(ball_x, ball_y, ball_angle, self.ball_velocity)
         ball_state = BallInitState()
         ball_state.x = ball_x
@@ -124,27 +128,42 @@ class BallMove:
         ball_state.angle = ball_angle
         self.ball_state_pub.publish(ball_state)
         
-    def ball_in_goal(self):
+    def compute_reward(self):
         state = self.get_state('soccer_ball','world')
         g_top = 4.5
         g_bottom = 2.3
         g_left = -7
         g_right = -6.3
-        if (state.pose.position.x < g_right and state.pose.position.x > g_left
-            and state.pose.position.y < g_top and state.pose.position.y > g_bottom):
-            return 1
+        IN_GOAL_REWARD = -100
+        ROBOT_HIT_REWARD = 100
+        STILL_MOVING_REWARD = 0
+        curr_ball_x = state.pose.position.x
+        curr_ball_y = state.pose.position.y
+        if (curr_ball_x < g_right and curr_ball_x > g_left
+            and curr_ball_y < g_top and curr_ball_y > g_bottom):
+            print('Returning IN_GOAL_REWARD')
+            self.last_ball_x = curr_ball_x
+            return IN_GOAL_REWARD
+        # Check if the ball has been hit by the robot and is therefore moving in opposite direction as 
+        # when the last reward was computed, or if it is just still heading towards the robot.
+        tolerance = 0.1
+        if curr_ball_x > self.last_ball_x or np.isclose(curr_ball_x, self.last_ball_x, tolerance):
+            # The robot hit the ball and reversed its direction
+            print('Returning ROBOT_HIT_REWARD')
+            self.last_ball_x = curr_ball_x
+            return ROBOT_HIT_REWARD
         else:
-            return 0
+            print('Returning STILL_MOVING_REWARD')
+            self.last_ball_x = curr_ball_x
+            return STILL_MOVING_REWARD
         
     def send_ball(self):
         self.set_random_ball_state()
-        rospy.sleep(5)
-        goal = self.ball_in_goal()
-        if (goal == 1):
-            reward = -10
-        else:
-            reward = 10
-        self.ball_res_pub.publish(reward)
+        SLEEP_TIME = 5
+        for _ in range(NUM_POS_SENDS):
+            rospy.sleep(SLEEP_TIME / NUM_POS_SENDS)
+            reward = self.compute_reward()
+            self.ball_res_pub.publish(reward)
             
             
     def run_old(self):
