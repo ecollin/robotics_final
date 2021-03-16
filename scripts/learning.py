@@ -54,6 +54,9 @@ class Learn:
         self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
         self.Q = np.zeros((Learn.NUM_STATES, 3), dtype=int)
         self.count = 0
+        self.state_num = 0
+        self.reward_num = 0
+        self.reward = None
 
     def get_state_num(self):
         # mapping the robot/ball orientation to a number
@@ -66,7 +69,7 @@ class Learn:
         ball_ybox = np.ceil(ball_state.pose.position.y/Learn.RESOLUTION)
         # the state is the combination of dx and dy.
         dx = int(ball_xbox - robot_xbox)
-        dy = int(ball_ybox - robot_xbox)
+        dy = int(ball_ybox - robot_ybox)
         #adjusting so I no longer have negative values
         dx += Learn.BOXES_X-1
         dy += Learn.BOXES_Y-1
@@ -79,8 +82,8 @@ class Learn:
         self.state_num += 1
 
     def ball_result_received(self, data):
-        print("Reward Received")
-        self.current_reward = data
+        print(f"Reward {self.reward_num} Received, val {data.reward}")
+        self.reward = data.reward
         self.reward_num += 1
 
     def set_robot(self, x, y):
@@ -120,10 +123,10 @@ class Learn:
         robot_y = robot_state.pose.position.y
         if action == Learn.MOVE_LEFT:
             print("Move left")
-            self.set_robot(robot_x, robot_y+0.5)
+            self.set_robot(robot_x, robot_y+ Learn.RESOLUTION)
         elif action == Learn.MOVE_RIGHT:
             print("move right")
-            self.set_robot(robot_x, robot_y-0.5)
+            self.set_robot(robot_x, robot_y-Learn.RESOLUTION)
         else:
             print("Stay put")
 
@@ -138,23 +141,24 @@ class Learn:
             print("Initial state:", s)
             a = random.choice(np.arange(3))
             self.apply_action(a)
-            rospy.sleep(0.5)
+            while self.reward == None:
+                print("Sleeping to wait for reward")
+                rospy.sleep(1)
+            reward = self.reward
+            self.reward = None
             next_state = self.get_state_num()
             mx = np.amax(self.Q[next_state])
-            # read in reward from this action
-            reward = 0  ## TODO
             update = self.Q[s][a] + alpha*(reward+gamma*mx-self.Q[s][a])
             if self.Q[s][a] != update:
-                print("UPdate Q matrix")
+                print("Update Q matrix")
                 self.Q[s][a] = update
+                print(self.Q)
                 self.count = 0
             else:
                 self.count += 1
 
-
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
-        #print("Robot state:")
-        #print(robot_state)
+
 
     def run(self):
         rospy.spin()

@@ -169,21 +169,30 @@ class BallMove:
             rospy.sleep(SLEEP_TIME / NUM_POS_SENDS)
             reward = self.compute_reward()
             self.ball_res_pub.publish(reward)
-            
-            
-    def run_old(self):
-        rate = rospy.Rate(1)
+    
+    def reset_goalie(self):
+        state = ModelState()
+        state.model_name = 'turtlebot3_waffle_pi'
+        state.reference_frame = 'world'  # ''ground_plane'
+        # pose x -5.8 y 3.4 z 0 yaw 1.570796
+        state.pose.position.x = -5.8
+        state.pose.position.y = 3.4
+        state.pose.position.z = 0
+        quaternion = quaternion_from_euler(0, 0, 1.570796)
+        state.pose.orientation.x = quaternion[0]
+        state.pose.orientation.y = quaternion[1]
+        state.pose.orientation.z = quaternion[2]
+        state.pose.orientation.w = quaternion[3]
 
-        for i in range(10):
-            self.set_random_ball_state()        
-            rospy.sleep(5)
-            goal = self.ball_in_goal()
-            if (goal == 1):
-                print("Goal!!")
-            else:
-                print("saved!!")
+        rospy.wait_for_service('/gazebo/set_model_state')
+        try:
+            set_state = self.set_state
+            result = set_state(state)
+            assert result.success is True
+        except rospy.ServiceException:
+            print("/gazebo/get_model_state service call failed")
 
-        rospy.spin()
+
 
     def run(self):
         rate = rospy.Rate(1)
@@ -191,12 +200,14 @@ class BallMove:
         while connections < 1:
             rate.sleep()
             connections = self.ball_state_pub.get_num_connections()
-        connections = self.ball_res_pub.get_num_connections()
-        while connections < 1:
-            rate.sleep()
-            connections = self.ball_res_pub.get_num_connections()
 
-        rospy.spin()
+        rate = rospy.Rate(1)
+        NUM_SENDS = 10
+        for _ in range(NUM_SENDS):
+            self.send_ball()
+            print("Resetting goalie position for next iteration")
+            self.reset_goalie()
+        print("DONE")
 
 
         
