@@ -12,8 +12,14 @@ from gazebo_msgs.srv import GetModelState
 from gazebo_msgs.srv import SetModelState
 import numpy as np
 import math
-from random import randint, random, uniform
+import random
 from robotics_final.msg import BallCommand, BallResult, BallInitState
+
+import tf
+from tf import TransformListener
+from tf import TransformBroadcaster
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
+
 
 from constants import NUM_POS_SENDS
 
@@ -25,25 +31,47 @@ class Learn:
     STAY_PUT = 1
     MOVE_RIGHT = 2
 
+
+    # field goes from (-7, 0) to (-1.8, 7)
+    FIELD_XLEFT = -7.0
+    FIELD_DX = 7.0-1.8
+    FIELD_DY = 7.0
+    RESOLUTION = 1 # side length of square (m)
+    BOXES_X = int(np.ceil(FIELD_DX/RESOLUTION))
+    BOXES_Y = int(np.ceil(FIELD_DY/RESOLUTION))
+    NUM_STATES = (BOXES_X*2-1)*(BOXES_Y*2-1)
+    print("Resolution =",RESOLUTION,"boxes/meter")
+    print("X boxes:", BOXES_X)
+    print("Y boxes:", BOXES_Y)
+    print("Number of states:", NUM_STATES)
+
     def __init__(self):
-        self.initialized = False
         rospy.init_node('learning_algorithm')
         # subscribe to Ball_state, ball_result
         rospy.Subscriber("/robotics_final/ball_state", BallInitState, self.ball_state_received)
         rospy.Subscriber("/robotics_final/ball_result", BallResult, self.ball_result_received)
         self.get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
-        self.current_state = None
-        self.state_num = 0
-        self.current_reward = None
-        self.reward_num = 0
-        self.iter_num = 1
-        self.initialized = True
+        self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+        self.Q = np.zeros((Learn.NUM_STATES, 3), dtype=int)
+        self.count = 0
 
     def get_state_num(self):
+        # mapping the robot/ball orientation to a number
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
         ball_state = self.get_state('soccer_ball','world')
-        dx = robot_state.pose.position.x - ball_state.pose.position.x
-        dy = robot_state.pose.position.y - ball_state.pose.position.y
+        # each object is in a "box" that is RESOLUTION meters wide.
+        robot_xbox = np.ceil((robot_state.pose.position.x-Learn.FIELD_XLEFT)/Learn.RESOLUTION)
+        robot_ybox = np.ceil(robot_state.pose.position.y/Learn.RESOLUTION)
+        ball_xbox = np.ceil((ball_state.pose.position.x-Learn.FIELD_XLEFT)/Learn.RESOLUTION)
+        ball_ybox = np.ceil(ball_state.pose.position.y/Learn.RESOLUTION)
+        # the state is the combination of dx and dy.
+        dx = int(ball_xbox - robot_xbox)
+        dy = int(ball_ybox - robot_xbox)
+        #adjusting so I no longer have negative values
+        dx += Learn.BOXES_X-1
+        dy += Learn.BOXES_Y-1
+        #converting to unique number between 0 and NSTATES-1:
+        return (2*Learn.BOXES_Y-1)*dy+dx
 
     def ball_state_received(self, data):
         print("Ball's initial state received")
@@ -55,19 +83,82 @@ class Learn:
         self.current_reward = data
         self.reward_num += 1
 
+    def set_robot(self, x, y):
+        # help from: https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
+        state = ModelState()
+        state.model_name = 'turtlebot3_waffle_pi'
+        state.reference_frame = 'world'  # ''ground_plane'
+        # pose
+        state.pose.position.x = x
+        state.pose.position.y = y
+        state.pose.position.z = 0
+        quaternion = tf.transformations.quaternion_from_euler(0, 0, 0)
+        state.pose.orientation.x = quaternion[0]
+        state.pose.orientation.y = quaternion[1]
+        state.pose.orientation.z = quaternion[2]
+        state.pose.orientation.w = quaternion[3]
+        # twist
+        state.twist.linear.x = 0
+        state.twist.linear.y = 0
+        state.twist.linear.z = 0
+        state.twist.angular.x = 0
+        state.twist.angular.y = 0
+        state.twist.angular.z = 0
+
+        rospy.wait_for_service('/gazebo/set_model_state')
+        try:
+            set_state = self.set_state
+            result = set_state(state)
+            assert result.success is True
+        except rospy.ServiceException:
+            print("/gazebo/get_model_state service call failed")
+
+
+    def apply_action(self, action):
+        robot_state = self.get_state('turtlebot3_waffle_pi','world')
+        robot_x = robot_state.pose.position.x
+        robot_y = robot_state.pose.position.y
+        if action == Learn.MOVE_LEFT:
+            print("Move left")
+            self.set_robot(robot_x, robot_y+0.5)
+        elif action == Learn.MOVE_RIGHT:
+            print("move right")
+            self.set_robot(robot_x, robot_y-0.5)
+        else:
+            print("Stay put")
+
     def algorithm(self):
-        if self.reward_num == self.state_num == self.iter_num:
-            ## we have a correct state, reward pair
-            robot_state = self.get_state('turtlebot3_waffle_pi','world')
-            print("Robot state:")
-            print(robot_state)
-            self.iter_num += 1
+        threshold = 50
+        alpha = 1
+        gamma = 0.5
+        while self.count < threshold:
+            print('------\nIterations without update:', self.count, '/', threshold)
+            # select a possible action (any of them)
+            s = self.get_state_num()
+            print("Initial state:", s)
+            a = random.choice(np.arange(3))
+            self.apply_action(a)
+            next_state = self.get_state_num()
+            mx = np.amax(self.Q[next_state])
+            # read in reward from this action
+            reward = 0
+            update = self.Q[s][a] + alpha*(reward+gamma*mx-self.Q[s][a])
+            if self.Q[s][a] != update:
+                print("UPdate Q matrix")
+                self.Q[s][a] = update
+                self.count = 0
+            else:
+                self.count += 1
+
+
+        robot_state = self.get_state('turtlebot3_waffle_pi','world')
+        #print("Robot state:")
+        #print(robot_state)
 
     def run(self):
         rospy.spin()
 
 if __name__ == "__main__":
     node = Learn()
-    while(1):
-        node.algorithm()
+    node.algorithm()
     node.run()
