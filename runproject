@@ -1,0 +1,8 @@
+#!/bin/csh -f
+gnome-terminal -x roscore
+sleep 1
+gnome-terminal -x roslaunch robotics_final turtlebot3_pong.launch
+sleep 3
+gnome-terminal -x rosrun robotics_final ball_move_orig.py
+gnome-terminal -x rosrun robotics_final play_commands_new.py
+
