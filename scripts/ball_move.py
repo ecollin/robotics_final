@@ -22,7 +22,7 @@ from random import randint, random, uniform
 
 import constants as C
 
-from robotics_final.msg import BallCommand, BallResult, BallInitState
+from robotics_final.msg import BallCommand, BallResult, BallInitState, RobotAction
 
 def get_yaw_from_pose(p):
     """ A helper function that takes in a Pose object (geometry_msgs) and returns yaw"""
@@ -51,6 +51,7 @@ class BallMove:
         # Setup publishers and subscribers
         # subscribe to the lidar scan from the robot
         rospy.Subscriber(self.scan_topic, LaserScan, self.robot_scan_received)
+        rospy.Subscriber("robotics_final/robot_action", RobotAction, self.action_received)
         rospy.Subscriber("/robotics_final/BallCommand", BallCommand, self.command_received)
         self.ball_state_pub = rospy.Publisher("robotics_final/ball_state", BallInitState, queue_size=10)
         self.ball_res_pub = rospy.Publisher("robotics_final/ball_result", BallResult, queue_size=10)
@@ -69,6 +70,56 @@ class BallMove:
         self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
 
         self.initialized = True
+
+
+    def action_received(self, data):
+        action = data.action
+        robot_state = self.get_state('turtlebot3_waffle_pi','world')
+        robot_x = robot_state.pose.position.x
+        robot_y = robot_state.pose.position.y
+        # Set the distance moved in an action such that it is at least as large as the 
+        # minimum distance that would let a robot in the middle of the goal go to either side
+        move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
+        move_dist = 0.5
+        if action == C.ACTION_MOVE_LEFT:
+            print("Move left")
+            self.set_robot(robot_x, robot_y+ move_dist)
+        elif action == C.ACTION_MOVE_RIGHT:
+            print("move right")
+            self.set_robot(robot_x, robot_y-move_dist)
+        else:
+            print("Stay put")
+
+
+    def set_robot(self, x, y):
+        # help from: https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
+        state = ModelState()
+        state.model_name = 'turtlebot3_waffle_pi'
+        state.reference_frame = 'world'  # ''ground_plane'
+        # pose
+        state.pose.position.x = x
+        state.pose.position.y = y
+        state.pose.position.z = 0
+        quaternion = tf.transformations.quaternion_from_euler(0, 0, 0)
+        state.pose.orientation.x = quaternion[0]
+        state.pose.orientation.y = quaternion[1]
+        state.pose.orientation.z = quaternion[2]
+        state.pose.orientation.w = quaternion[3]
+        # twist
+        state.twist.linear.x = 0
+        state.twist.linear.y = 0
+        state.twist.linear.z = 0
+        state.twist.angular.x = 0
+        state.twist.angular.y = 0
+        state.twist.angular.z = 0
+
+        rospy.wait_for_service('/gazebo/set_model_state')
+        try:
+            set_state = self.set_state
+            result = set_state(state)
+            assert result.success is True
+        except rospy.ServiceException:
+            print("/gazebo/get_model_state service call failed")
 
 
     def command_received(self, data: BallCommand):
@@ -160,7 +211,7 @@ class BallMove:
         
     def send_ball(self):
         self.set_random_ball_state()
-        SLEEP_TIME = 5
+        SLEEP_TIME = 4
         for _ in range(C.NUM_POS_SENDS):
             rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
             reward = self.compute_reward()

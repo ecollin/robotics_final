@@ -13,7 +13,7 @@ from gazebo_msgs.srv import SetModelState
 import numpy as np
 import math
 import random
-from robotics_final.msg import BallCommand, BallResult, BallInitState
+from robotics_final.msg import BallCommand, BallResult, BallInitState, RobotAction
 
 import tf
 from tf import TransformListener
@@ -49,6 +49,8 @@ class Learn:
         # subscribe to Ball_state, ball_result
         rospy.Subscriber("/robotics_final/ball_state", BallInitState, self.ball_state_received)
         rospy.Subscriber("/robotics_final/ball_result", BallResult, self.ball_result_received)
+        self.action_pub = rospy.Publisher("robotics_final/robot_action", RobotAction, queue_size=10)
+
         self.get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
         self.Q = np.zeros((Learn.NUM_STATES, 3), dtype=int)
@@ -85,53 +87,17 @@ class Learn:
         self.reward = data.reward
         self.reward_num += 1
 
-    def set_robot(self, x, y):
-        # help from: https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
-        state = ModelState()
-        state.model_name = 'turtlebot3_waffle_pi'
-        state.reference_frame = 'world'  # ''ground_plane'
-        # pose
-        state.pose.position.x = x
-        state.pose.position.y = y
-        state.pose.position.z = 0
-        quaternion = tf.transformations.quaternion_from_euler(0, 0, 0)
-        state.pose.orientation.x = quaternion[0]
-        state.pose.orientation.y = quaternion[1]
-        state.pose.orientation.z = quaternion[2]
-        state.pose.orientation.w = quaternion[3]
-        # twist
-        state.twist.linear.x = 0
-        state.twist.linear.y = 0
-        state.twist.linear.z = 0
-        state.twist.angular.x = 0
-        state.twist.angular.y = 0
-        state.twist.angular.z = 0
-
-        rospy.wait_for_service('/gazebo/set_model_state')
-        try:
-            set_state = self.set_state
-            result = set_state(state)
-            assert result.success is True
-        except rospy.ServiceException:
-            print("/gazebo/get_model_state service call failed")
-
 
     def apply_action(self, action):
-        robot_state = self.get_state('turtlebot3_waffle_pi','world')
-        robot_x = robot_state.pose.position.x
-        robot_y = robot_state.pose.position.y
-        # Set the distance moved in an action such that it is at least as large as the 
-        # minimum distance that would let a robot in the middle of the goal go to either side
-        move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
-        move_dist = 0.5
         if action == Learn.MOVE_LEFT:
-            print("Move left")
-            self.set_robot(robot_x, robot_y+ move_dist)
+            print("Sending action to move left")
+            self.action_pub.publish(C.ACTION_MOVE_LEFT)
         elif action == Learn.MOVE_RIGHT:
-            print("move right")
-            self.set_robot(robot_x, robot_y-move_dist)
+            print("Sending action to move right")
+            self.action_pub.publish(C.ACTION_MOVE_RIGHT)
         else:
-            print("Stay put")
+            print("Staying put")
+
 
     def algorithm(self):
         threshold = 50
