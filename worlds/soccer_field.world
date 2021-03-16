@@ -88,10 +88,10 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <state world_name='default'>
-      <sim_time>346 62000000</sim_time>
-      <real_time>50 694150838</real_time>
-      <wall_time>1615760613 475536353</wall_time>
-      <iterations>50559</iterations>
+      <sim_time>584 883000000</sim_time>
+      <real_time>239 558602557</real_time>
+      <wall_time>1615910193 483672666</wall_time>
+      <iterations>238821</iterations>
       <model name='RoboCup 14 SPL Field'>
         <pose>-1.83581 3.38575 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -201,88 +201,88 @@
         </link>
       </model>
       <model name='robocup_3d_goal_0'>
-        <pose>-6.38078 3.40119 0 0.013699 -0.121325 -3.13547</pose>
+        <pose>-6.36 3.3924 0 0 -0 3.14159</pose>
         <scale>1 1 1</scale>
         <link name='center_net'>
-          <pose>-6.88828 3.40356 0.464798 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.92 3.3924 0.4 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='center_support_horiz_lower'>
-          <pose>-6.93545 3.39793 0.077701 0.111888 1.44871 -3.02275</pose>
+          <pose>-6.92 3.3924 0.01 3.14159 1.57079 -4e-06</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='center_support_horiz_upper'>
-          <pose>-6.84112 3.40919 0.851895 0.111888 1.44871 -3.02275</pose>
+          <pose>-6.92 3.3924 0.79 3.14159 1.57079 -4e-06</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='crossbar'>
-          <pose>-6.27799 3.41347 0.843673 1.68116 1.44791 -3.02348</pose>
+          <pose>-6.36 3.3924 0.85 1.57 1.57 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='left_net'>
-          <pose>-6.62203 2.35527 0.447608 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.66 2.3424 0.4 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='left_post'>
-          <pose>-6.31819 2.35782 0.460928 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.36 2.3424 0.45 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='left_support_horiz_lower'>
-          <pose>-6.66919 2.34964 0.060511 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.66 2.3424 0.01 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='left_support_horiz_upper'>
-          <pose>-6.57487 2.3609 0.834705 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.66 2.3424 0.79 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='left_support_vertical'>
-          <pose>-6.88011 2.35369 0.479075 0.111888 1.44871 -3.02275</pose>
+          <pose>-6.92 2.3424 0.4 3.14159 1.57079 -4e-06</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='right_net'>
-          <pose>-6.63837 4.45502 0.419053 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.66 4.4424 0.4 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='right_post'>
-          <pose>-6.33454 4.45756 0.432373 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.36 4.4424 0.45 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='right_support_horiz_lower'>
-          <pose>-6.68553 4.44938 0.031956 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.66 4.4424 0.01 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='right_support_horiz_upper'>
-          <pose>-6.59121 4.46065 0.80615 0.013699 -0.121325 -3.13547</pose>
+          <pose>-6.66 4.4424 0.79 0 -0 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='right_support_vertical'>
-          <pose>-6.89646 4.45343 0.45052 0.111888 1.44871 -3.02275</pose>
+          <pose>-6.92 4.4424 0.4 3.14159 1.57079 -4e-06</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -1201,6 +1201,13 @@
       </link>
       <pose>2.75025 3.35563 0 0 -0 0</pose>
     </model>
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>0.508565 1.93995 16.4848 1e-06 1.5578 1.5682</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
     <model name='robocup_3d_goal_0'>
       <static>1</static>
       <link name='left_post'>
@@ -1212,6 +1219,7 @@
               <length>0.9</length>
             </cylinder>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1224,7 +1232,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1252,6 +1259,7 @@
               <size>0.5 0.02 0.02</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1264,7 +1272,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1291,6 +1298,7 @@
               <size>0.5 0.02 0.02</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1303,7 +1311,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1330,6 +1337,7 @@
               <size>0.8 0.02 0.02</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1342,7 +1350,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1369,6 +1376,7 @@
               <size>0.5 0.02 0.02</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1381,7 +1389,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1408,6 +1415,7 @@
               <size>0.5 0.02 0.02</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1420,7 +1428,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1447,6 +1454,7 @@
               <size>0.8 0.02 0.02</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1459,7 +1467,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1486,6 +1493,7 @@
               <size>0.02 2.08 0.02</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1498,7 +1506,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1525,6 +1532,7 @@
               <size>0.02 2.08 0.02</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1537,7 +1545,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1565,6 +1572,7 @@
               <length>0.9</length>
             </cylinder>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1577,7 +1585,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1606,6 +1613,7 @@
               <length>2</length>
             </cylinder>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1618,7 +1626,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1646,6 +1653,7 @@
               <size>0.01 2.1 0.8</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1658,7 +1666,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1686,6 +1693,7 @@
               <size>0.5 0.01 0.76</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1698,7 +1706,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1726,6 +1733,7 @@
               <size>0.5 0.01 0.76</size>
             </box>
           </geometry>
+          <max_contacts>10</max_contacts>
           <surface>
             <contact>
               <ode/>
@@ -1738,7 +1746,6 @@
               <ode/>
             </friction>
           </surface>
-          <max_contacts>10</max_contacts>
         </collision>
         <visual name='visual'>
           <geometry>
@@ -1758,14 +1765,7 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose>-5.04535 3.39771 0 0 -0 0</pose>
+      <pose>-6.41802 3.37687 0 0 -0 0</pose>
     </model>
-    <gui fullscreen='0'>
-      <camera name='user_camera'>
-        <pose>1.66577 1.68083 16.4815 1e-06 1.5578 1.5682</pose>
-        <view_controller>orbit</view_controller>
-        <projection_type>perspective</projection_type>
-      </camera>
-    </gui>
   </world>
 </sdf>

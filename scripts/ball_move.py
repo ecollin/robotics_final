@@ -50,7 +50,7 @@ class BallMove:
         
         # Setup publishers and subscribers
         # subscribe to the lidar scan from the robot
-        rospy.Subscriber(self.scan_topic, LaserScan, self.robot_scan_received)
+        #rospy.Subscriber(self.scan_topic, LaserScan, self.robot_scan_received)
         rospy.Subscriber("/robotics_final/BallCommand", BallCommand, self.command_received)
         self.ball_state_pub = rospy.Publisher("robotics_final/ball_state", BallInitState, queue_size=10)
         self.ball_res_pub = rospy.Publisher("robotics_final/ball_result", BallResult, queue_size=10)
@@ -136,6 +136,7 @@ class BallMove:
 
         IN_GOAL_REWARD = -100
         ROBOT_HIT_REWARD = 100
+        MISSED_GOAL_REWARD = 50
         STILL_MOVING_REWARD = 0
         curr_ball_x = state.pose.position.x
         curr_ball_y = state.pose.position.y
@@ -145,6 +146,12 @@ class BallMove:
             print('Returning IN_GOAL_REWARD')
             self.last_ball_x = curr_ball_x
             return IN_GOAL_REWARD
+        # check if ball went wide of the goal, 
+        if (curr_ball_x < C.GOAL_RIGHT and 
+            (curr_ball_y > C.GOAL_TOP or curr_ball_y < C.GOAL_BOTTOM)):
+            print('Returning MISSED_GOAL_REWARD')
+            self.last_ball_x = curr_ball_x
+            return MISSED_GOAL_REWARD
         # Check if the ball has been hit by the robot and is therefore moving in opposite direction as 
         # when the last reward was computed, or if it is just still heading towards the robot.
         tolerance = 0.1
