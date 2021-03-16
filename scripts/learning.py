@@ -164,9 +164,25 @@ class Learn:
 
 
     def run(self):
-        rospy.spin()
+        self.execute_best_actions()
+
+    def execute_best_actions(self):
+        while True:
+            print("In execute_best_actions")
+            s = self.get_state_num()
+            qvals = self.Q[s]
+            # Get action with largest qval
+            best_action = np.argmax(qvals)
+            # We don't actually update with rewards
+            # But use them to know when to perform next action
+            self.apply_action(best_action)
+            while self.reward == None:
+                rospy.sleep(1)
+            self.reward = None
+            
 
 if __name__ == "__main__":
     node = Learn()
     node.algorithm()
+    print("DONE LEARNING\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
     node.run()
