@@ -117,7 +117,7 @@ class BallMove:
     def set_random_ball_state(self):
         ball_y = self.south_goal_line+(self.north_goal_line-self.south_goal_line)*uniform(0,1)
         ball_x = self.mid_field_x
-        print(f"Initializing random ball at x,y {ball_x} {ball_y} ")
+        #print(f"Initializing random ball at x,y {ball_x} {ball_y} ")
         self.last_ball_x = float('inf')
         dy = ball_y - self.mid_goal_y
         dx = ball_x - self.mid_goal_x
@@ -132,7 +132,7 @@ class BallMove:
     def compute_reward(self):
         state = self.get_state('soccer_ball','world')
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
-        print(f'robot state in compute reward, x,y: {robot_state.pose.position.x} {robot_state.pose.position.y} ')
+        #print(f'robot state in compute reward, x,y: {robot_state.pose.position.x} {robot_state.pose.position.y} ')
 
         IN_GOAL_REWARD = -100
         ROBOT_HIT_REWARD = 100
@@ -140,7 +140,7 @@ class BallMove:
         STILL_MOVING_REWARD = 0
         curr_ball_x = state.pose.position.x
         curr_ball_y = state.pose.position.y
-        print(f"before returning reward ball at x,y {curr_ball_x} {curr_ball_y}")
+        #print(f"before returning reward ball at x,y {curr_ball_x} {curr_ball_y}")
         if (curr_ball_x < C.GOAL_RIGHT and curr_ball_x > C.GOAL_LEFT
             and curr_ball_y < C.GOAL_TOP and curr_ball_y > C.GOAL_BOTTOM):
             print('Returning IN_GOAL_REWARD')
@@ -160,6 +160,9 @@ class BallMove:
             print('Returning ROBOT_HIT_REWARD')
             self.last_ball_x = curr_ball_x
             return ROBOT_HIT_REWARD
+        if (self.TIMES_UP == 1):
+            print('Returning ROBOT_HIT_REWARD - times up')
+            return MISSED_GOAL_REWARD
         else:
             print('Returning STILL_MOVING_REWARD')
             self.last_ball_x = curr_ball_x
@@ -167,11 +170,16 @@ class BallMove:
         
     def send_ball(self):
         self.set_random_ball_state()
+        self.TIMES_UP = 0 # timer to check for missed goal
         SLEEP_TIME = 5
-        for _ in range(C.NUM_POS_SENDS):
+        for _ in range(C.NUM_POS_SENDS - 1):
             rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
             reward = self.compute_reward()
             self.ball_res_pub.publish(reward)
+        self.TIMES_UP = 1 # note that time is up, so either it's in the goal or not
+        rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
+        reward = self.compute_reward()
+        self.ball_res_pub.publish(reward)
     
     def reset_goalie(self):
         state = ModelState()
@@ -213,7 +221,7 @@ class BallMove:
             connections = self.ball_state_pub.get_num_connections()
 
         rate = rospy.Rate(1)
-        NUM_SENDS = 10
+        NUM_SENDS = 1000
         for _ in range(NUM_SENDS):
             self.send_ball()
             print("Resetting goalie position for next iteration")
