@@ -138,10 +138,11 @@ class Learn:
             print("Initial state:", s)
             a = random.choice(np.arange(3))
             self.apply_action(a)
+            rospy.sleep(0.5)
             next_state = self.get_state_num()
             mx = np.amax(self.Q[next_state])
             # read in reward from this action
-            reward = 0
+            reward = 0  ## TODO
             update = self.Q[s][a] + alpha*(reward+gamma*mx-self.Q[s][a])
             if self.Q[s][a] != update:
                 print("UPdate Q matrix")
