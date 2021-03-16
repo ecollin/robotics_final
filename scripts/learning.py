@@ -21,8 +21,7 @@ from tf import TransformBroadcaster
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 
-from constants import NUM_POS_SENDS
-
+import constants as C
 
 class Learn:
 
@@ -121,12 +120,16 @@ class Learn:
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
         robot_x = robot_state.pose.position.x
         robot_y = robot_state.pose.position.y
+        # Set the distance moved in an action such that it is at least as large as the 
+        # minimum distance that would let a robot in the middle of the goal go to either side
+        move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
+        move_dist = 0.5
         if action == Learn.MOVE_LEFT:
             print("Move left")
-            self.set_robot(robot_x, robot_y+ Learn.RESOLUTION)
+            self.set_robot(robot_x, robot_y+ move_dist)
         elif action == Learn.MOVE_RIGHT:
             print("move right")
-            self.set_robot(robot_x, robot_y-Learn.RESOLUTION)
+            self.set_robot(robot_x, robot_y-move_dist)
         else:
             print("Stay put")
 

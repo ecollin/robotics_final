@@ -20,7 +20,7 @@ import numpy as np
 import math
 from random import randint, random, uniform
 
-from constants import NUM_POS_SENDS
+import constants as C
 
 from robotics_final.msg import BallCommand, BallResult, BallInitState
 
@@ -134,18 +134,14 @@ class BallMove:
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
         print(f'robot state in compute reward, x,y: {robot_state.pose.position.x} {robot_state.pose.position.y} ')
 
-        g_top = 4.5
-        g_bottom = 2.3
-        g_left = -7
-        g_right = -6.3
         IN_GOAL_REWARD = -100
         ROBOT_HIT_REWARD = 100
         STILL_MOVING_REWARD = 0
         curr_ball_x = state.pose.position.x
         curr_ball_y = state.pose.position.y
         print(f"before returning reward ball at x,y {curr_ball_x} {curr_ball_y}")
-        if (curr_ball_x < g_right and curr_ball_x > g_left
-            and curr_ball_y < g_top and curr_ball_y > g_bottom):
+        if (curr_ball_x < C.GOAL_RIGHT and curr_ball_x > C.GOAL_LEFT
+            and curr_ball_y < C.GOAL_TOP and curr_ball_y > C.GOAL_BOTTOM):
             print('Returning IN_GOAL_REWARD')
             self.last_ball_x = curr_ball_x
             return IN_GOAL_REWARD
@@ -165,8 +161,8 @@ class BallMove:
     def send_ball(self):
         self.set_random_ball_state()
         SLEEP_TIME = 5
-        for _ in range(NUM_POS_SENDS):
-            rospy.sleep(SLEEP_TIME / NUM_POS_SENDS)
+        for _ in range(C.NUM_POS_SENDS):
+            rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
             reward = self.compute_reward()
             self.ball_res_pub.publish(reward)
     
@@ -174,11 +170,19 @@ class BallMove:
         state = ModelState()
         state.model_name = 'turtlebot3_waffle_pi'
         state.reference_frame = 'world'  # ''ground_plane'
+        """
+        Original version o below:
         # pose x -5.8 y 3.4 z 0 yaw 1.570796
         state.pose.position.x = -5.8
         state.pose.position.y = 3.4
         state.pose.position.z = 0
         quaternion = quaternion_from_euler(0, 0, 1.570796)
+        """
+        state.pose.position.x = C.GOALIE_X
+        # Goalie needs to be in front of goal, not in middle
+        state.pose.position.y = (C.GOAL_TOP + C.GOAL_BOTTOM) / 2
+        state.pose.position.z = 0
+        quaternion = quaternion_from_euler(0, 0, math.pi / 2)
         state.pose.orientation.x = quaternion[0]
         state.pose.orientation.y = quaternion[1]
         state.pose.orientation.z = quaternion[2]
