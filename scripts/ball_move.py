@@ -62,7 +62,7 @@ class BallMove:
         self.mid_field_x = -1.8
         self.mid_goal_x = -6.23
         self.mid_goal_y = 3.45
-        self.ball_velocity = 2
+        self.ball_velocity = 1.75
         self.last_ball_x = float('inf')
         
         self.get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
@@ -115,13 +115,13 @@ class BallMove:
             print("/gazebo/get_model_state service call failed")
 
     def set_random_ball_state(self):
-        ball_y = self.south_goal_line+(self.north_goal_line-self.south_goal_line)*uniform(0,1)
+        ball_y = self.south_goal_line+(self.north_goal_line-self.south_goal_line)*randint(0,4)/4
         ball_x = self.mid_field_x
         #print(f"Initializing random ball at x,y {ball_x} {ball_y} ")
         self.last_ball_x = float('inf')
         dy = ball_y - self.mid_goal_y
         dx = ball_x - self.mid_goal_x
-        ball_angle = math.pi+math.atan(dy/dx) + uniform(-1,1)*math.pi/20
+        ball_angle = math.pi+math.atan(dy/dx) # + uniform(-1,1)*math.pi/20
         self.set_start_ball(ball_x, ball_y, ball_angle, self.ball_velocity)
         ball_state = BallInitState()
         ball_state.x = ball_x
@@ -176,10 +176,13 @@ class BallMove:
             rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
             reward = self.compute_reward()
             self.ball_res_pub.publish(reward)
-        self.TIMES_UP = 1 # note that time is up, so either it's in the goal or not
-        rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
-        reward = self.compute_reward()
-        self.ball_res_pub.publish(reward)
+            if reward != 0:
+                break
+        if reward == 0:
+            self.TIMES_UP = 1 # note that time is up, so either it's in the goal or not
+            rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
+            reward = self.compute_reward()
+            self.ball_res_pub.publish(reward)
     
     def reset_goalie(self):
         state = ModelState()
