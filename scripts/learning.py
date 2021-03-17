@@ -20,6 +20,8 @@ from tf import TransformListener
 from tf import TransformBroadcaster
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
+np.set_printoptions(threshold=np.inf)
+
 
 import constants as C
 
@@ -66,8 +68,6 @@ class Learn:
         robot_ybox = np.ceil(robot_state.pose.position.y/Learn.RESOLUTION)
         ball_xbox = np.ceil((ball_state.pose.position.x-Learn.FIELD_XLEFT)/Learn.RESOLUTION)
         ball_ybox = np.ceil(ball_state.pose.position.y/Learn.RESOLUTION)
-        print("robot:", robot_xbox, robot_ybox)
-        print("ball:", ball_xbox, ball_ybox)
         # the state is the combination of dx and dy.
         dx = int(ball_xbox - robot_xbox)
         dy = int(ball_ybox - robot_ybox)
@@ -136,7 +136,7 @@ class Learn:
             print("Stay put")
 
     def algorithm(self):
-        threshold = 401
+        threshold = 100
         alpha = 1
         gamma = 0.5
         while self.reward_num< threshold:##self.count < threshold:
@@ -150,6 +150,7 @@ class Learn:
                 #print("Sleeping to wait for reward")
                 rospy.sleep(1)
             reward = self.reward
+            print("REWARD ====", reward)
             self.reward = None
             next_state = self.get_state_num()
             mx = np.amax(self.Q[next_state])
@@ -162,6 +163,8 @@ class Learn:
                 self.count = 0
             else:
                 self.count += 1
+
+        print(self.Q)
 
 
 

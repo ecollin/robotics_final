@@ -143,9 +143,16 @@ class BallMove:
         STILL_MOVING_REWARD = 0
         curr_ball_x = state.pose.position.x
         curr_ball_y = state.pose.position.y
-        #print(f"before returning reward ball at x,y {curr_ball_x} {curr_ball_y}")
-        if (curr_ball_x < C.GOAL_RIGHT and curr_ball_x > C.GOAL_LEFT
-            and curr_ball_y < C.GOAL_TOP and curr_ball_y > C.GOAL_BOTTOM):
+        robot_x = robot_state.pose.position.x
+        robot_y = robot_state.pose.position.y
+        #print(f"\n\nbefore returning reward ball at x,y {curr_ball_x} {curr_ball_y}")
+        #print(f"Robot is at at x,y {robot_x} {robot_y}")
+        # original if statement:
+        #if (curr_ball_x < C.GOAL_RIGHT and curr_ball_x > C.GOAL_LEFT
+        #   and curr_ball_y < C.GOAL_TOP and curr_ball_y > C.GOAL_BOTTOM):
+        buf = 0.1
+        if (curr_ball_x < robot_x and curr_ball_x > C.GOAL_LEFT
+            and curr_ball_y < (C.GOAL_TOP+buf) and curr_ball_y > (C.GOAL_BOTTOM-buf)):
             print('Returning IN_GOAL_REWARD')
             self.last_ball_x = curr_ball_x
             return IN_GOAL_REWARD
