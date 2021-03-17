@@ -35,7 +35,7 @@ class Learn:
     FIELD_XLEFT = -7.0
     FIELD_DX = 7.0-1.8
     FIELD_DY = 7.0
-    RESOLUTION = 2 # side length of square (m)
+    RESOLUTION = 0.4 # side length of square (m)
     BOXES_X = int(np.ceil(FIELD_DX/RESOLUTION))
     BOXES_Y = int(np.ceil(FIELD_DY/RESOLUTION))
     NUM_STATES = (BOXES_X*2-1)*(BOXES_Y*2-1)
@@ -66,6 +66,8 @@ class Learn:
         robot_ybox = np.ceil(robot_state.pose.position.y/Learn.RESOLUTION)
         ball_xbox = np.ceil((ball_state.pose.position.x-Learn.FIELD_XLEFT)/Learn.RESOLUTION)
         ball_ybox = np.ceil(ball_state.pose.position.y/Learn.RESOLUTION)
+        print("robot:", robot_xbox, robot_ybox)
+        print("ball:", ball_xbox, ball_ybox)
         # the state is the combination of dx and dy.
         dx = int(ball_xbox - robot_xbox)
         dy = int(ball_ybox - robot_ybox)
@@ -123,7 +125,7 @@ class Learn:
         # Set the distance moved in an action such that it is at least as large as the
         # minimum distance that would let a robot in the middle of the goal go to either side
         move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
-        move_dist = 0.5
+        move_dist = 1.0
         if action == Learn.MOVE_LEFT:
             print("Move left")
             self.set_robot(robot_x, robot_y+ move_dist)
@@ -134,18 +136,18 @@ class Learn:
             print("Stay put")
 
     def algorithm(self):
-        threshold = 50
+        threshold = 401
         alpha = 1
         gamma = 0.5
-        while self.count < threshold:
-            print('------\nIterations without update:', self.count, '/', threshold)
+        while self.reward_num< threshold:##self.count < threshold:
+            print('------\nIteration number:', self.reward_num)
             # select a possible action (any of them)
             s = self.get_state_num()
             print("Initial state:", s)
             a = random.choice(np.arange(3))
             self.apply_action(a)
             while self.reward == None:
-                print("Sleeping to wait for reward")
+                #print("Sleeping to wait for reward")
                 rospy.sleep(1)
             reward = self.reward
             self.reward = None
@@ -153,14 +155,14 @@ class Learn:
             mx = np.amax(self.Q[next_state])
             update = self.Q[s][a] + alpha*(reward+gamma*mx-self.Q[s][a])
             if self.Q[s][a] != update:
-                print("Update Q matrix")
+                print(update)
+                print(self.Q[s][a])
+                print("Update Q matrix by %f" % (self.Q[s][a] - update))
                 self.Q[s][a] = update
-                print(self.Q)
                 self.count = 0
             else:
                 self.count += 1
 
-        robot_state = self.get_state('turtlebot3_waffle_pi','world')
 
 
     def run(self):
