@@ -136,7 +136,7 @@ class Learn:
             print("Stay put")
 
     def algorithm(self):
-        threshold = 100
+        threshold = 300
         alpha = 1
         gamma = 0.5
         while self.reward_num< threshold:##self.count < threshold:
@@ -156,8 +156,6 @@ class Learn:
             mx = np.amax(self.Q[next_state])
             update = self.Q[s][a] + alpha*(reward+gamma*mx-self.Q[s][a])
             if self.Q[s][a] != update:
-                print(update)
-                print(self.Q[s][a])
                 print("Update Q matrix by %f" % (self.Q[s][a] - update))
                 self.Q[s][a] = update
                 self.count = 0
