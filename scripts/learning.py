@@ -35,7 +35,7 @@ class Learn:
     FIELD_XLEFT = -7.0
     FIELD_DX = 7.0-1.8
     FIELD_DY = 7.0
-    RESOLUTION = 1 # side length of square (m)
+    RESOLUTION = 2 # side length of square (m)
     BOXES_X = int(np.ceil(FIELD_DX/RESOLUTION))
     BOXES_Y = int(np.ceil(FIELD_DY/RESOLUTION))
     NUM_STATES = (BOXES_X*2-1)*(BOXES_Y*2-1)
@@ -73,7 +73,7 @@ class Learn:
         dx += Learn.BOXES_X-1
         dy += Learn.BOXES_Y-1
         #converting to unique number between 0 and NSTATES-1:
-        return (2*Learn.BOXES_Y-1)*dy+dx
+        return (2*Learn.BOXES_X-1)*dy+dx
 
     def ball_state_received(self, data):
         print("Ball's initial state received")
@@ -120,7 +120,7 @@ class Learn:
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
         robot_x = robot_state.pose.position.x
         robot_y = robot_state.pose.position.y
-        # Set the distance moved in an action such that it is at least as large as the 
+        # Set the distance moved in an action such that it is at least as large as the
         # minimum distance that would let a robot in the middle of the goal go to either side
         move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
         move_dist = 0.5
@@ -179,7 +179,7 @@ class Learn:
             while self.reward == None:
                 rospy.sleep(1)
             self.reward = None
-            
+
 
 if __name__ == "__main__":
     node = Learn()
