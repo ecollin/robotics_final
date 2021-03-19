@@ -116,7 +116,7 @@ class BallMove:
             print("/gazebo/get_model_state service call failed")
 
     def set_random_ball_state(self):
-        ball_y = C.GOAL_BOTTOM + self.goal_width*randint(0,2)/2.0
+        ball_y = C.GOAL_BOTTOM + self.goal_width*randint(0,4)/4.0
         #ball_y = self.mid_goal_y -1 + self.goal_width*randint(0,3)/3.0
         #ball_y = self.south_goal_line+(self.north_goal_line-self.south_goal_line)*randint(0,3)/3
         ball_x = self.mid_field_x

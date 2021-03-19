@@ -125,7 +125,7 @@ class Learn:
         # Set the distance moved in an action such that it is at least as large as the
         # minimum distance that would let a robot in the middle of the goal go to either side
         move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
-        move_dist = 1.0
+        move_dist = 0.5
         if action == Learn.MOVE_LEFT:
             print("Move left")
             self.set_robot(robot_x, robot_y+ move_dist)
@@ -136,11 +136,12 @@ class Learn:
             print("Stay put")
 
     def algorithm(self):
-        threshold = 300
+        threshold = 50
         alpha = 1
         gamma = 0.5
-        while self.reward_num< threshold:##self.count < threshold:
+        while self.count < threshold:
             print('------\nIteration number:', self.reward_num)
+            print(self.count,"/",threshold)
             # select a possible action (any of them)
             s = self.get_state_num()
             print("Initial state:", s)
@@ -152,8 +153,12 @@ class Learn:
             reward = self.reward
             print("REWARD ====", reward)
             self.reward = None
-            next_state = self.get_state_num()
-            mx = np.amax(self.Q[next_state])
+            if reward == 0:
+                next_state = self.get_state_num()
+                mx = np.amax(self.Q[next_state])
+            else:
+                ## There is no next state if nonzero reward seen
+                mx = 0
             update = self.Q[s][a] + alpha*(reward+gamma*mx-self.Q[s][a])
             if self.Q[s][a] != update:
                 print("Update Q matrix by %f" % (self.Q[s][a] - update))
