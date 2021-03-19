@@ -49,9 +49,6 @@ class BallMove:
         self.scan_topic = "scan"
 
         # Setup publishers and subscribers
-        # subscribe to the lidar scan from the robot
-        #rospy.Subscriber(self.scan_topic, LaserScan, self.robot_scan_received)
-        rospy.Subscriber("/robotics_final/BallCommand", BallCommand, self.command_received)
         self.ball_state_pub = rospy.Publisher("robotics_final/ball_state", BallInitState, queue_size=10)
         self.ball_res_pub = rospy.Publisher("robotics_final/ball_result", BallResult, queue_size=10)
 
@@ -72,24 +69,17 @@ class BallMove:
         self.initialized = True
 
 
-    def command_received(self, data: BallCommand):
-        if (data.command == "send"):
-            self.send_ball()
-        else:
-            print("error: unknown command, ball_move/command_received")
-
-
-    def robot_scan_received(self, data):
-        # wait until initialization is complete
-        if not(self.initialized):
-            return
-
-
     def set_start_ball(self, x, y, theta, v):
-        # help from: https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
+        """
+        Given an (x, y) location and a velocity magnitude v with angle theta,
+        moves the ball to that location with that velocity.
+        Reference used:
+        https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
+
+        """
         state = ModelState()
         state.model_name = 'soccer_ball'
-        state.reference_frame = 'world'  # ''ground_plane'
+        state.reference_frame = 'world'
         # pose
         state.pose.position.x = x
         state.pose.position.y = y
@@ -116,7 +106,12 @@ class BallMove:
             print("/gazebo/get_model_state service call failed")
 
     def set_random_ball_state(self):
-        ball_y = C.GOAL_BOTTOM + self.goal_width*randint(0,4)/4.0
+        """
+        Used to set the ball start state at the beginning of iterations.
+        Randomly places the ball along the mid field line with velocity
+        such that, if unstopped, will enter the goal.
+        """
+        ball_y = C.GOAL_BOTTOM + self.goal_width*randint(0,2)/2.0
         #ball_y = self.mid_goal_y -1 + self.goal_width*randint(0,3)/3.0
         #ball_y = self.south_goal_line+(self.north_goal_line-self.south_goal_line)*randint(0,3)/3
         ball_x = self.mid_field_x
@@ -133,6 +128,13 @@ class BallMove:
         self.ball_state_pub.publish(ball_state)
 
     def compute_reward(self):
+        """
+        Uses the current locations of the soccer ball and robot
+        to determine and return a reward. Returns -100 if a goal was scored,
+        100 if the robot stopped the ball, 50 if the ball did not enter the goal
+        but the robot did not touch the ball (shouldn't happen in current code),
+        and 0 if the ball has not passed the robot yet.
+        """
         state = self.get_state('soccer_ball','world')
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
         #print(f'robot state in compute reward, x,y: {robot_state.pose.position.x} {robot_state.pose.position.y} ')
@@ -147,9 +149,6 @@ class BallMove:
         robot_y = robot_state.pose.position.y
         #print(f"\n\nbefore returning reward ball at x,y {curr_ball_x} {curr_ball_y}")
         #print(f"Robot is at at x,y {robot_x} {robot_y}")
-        # original if statement:
-        #if (curr_ball_x < C.GOAL_RIGHT and curr_ball_x > C.GOAL_LEFT
-        #   and curr_ball_y < C.GOAL_TOP and curr_ball_y > C.GOAL_BOTTOM):
         buf = 0.1
         if (curr_ball_x < robot_x and curr_ball_x > C.GOAL_LEFT
             and curr_ball_y < (C.GOAL_TOP+buf) and curr_ball_y > (C.GOAL_BOTTOM-buf)):
@@ -162,16 +161,12 @@ class BallMove:
             print('Returning MISSED_GOAL_REWARD')
             self.last_ball_x = curr_ball_x
             return MISSED_GOAL_REWARD
-        # Check if the ball has been hit by the robot and is therefore moving in opposite direction as
-        # when the last reward was computed, or if it is just still heading towards the robot.
-        tolerance = 0.1
-        if curr_ball_x > self.last_ball_x or np.isclose(curr_ball_x, self.last_ball_x, tolerance):
+        elif curr_ball_x > self.last_ball_x \
+        or np.isclose(curr_ball_x, self.last_ball_x, buf) \
+        or self.TIMES_UP:
             # The robot hit the ball and reversed its direction
             print('Returning ROBOT_HIT_REWARD')
             self.last_ball_x = curr_ball_x
-            return ROBOT_HIT_REWARD
-        if (self.TIMES_UP == 1):
-            print('Returning ROBOT_HIT_REWARD - times up')
             return ROBOT_HIT_REWARD
         else:
             print('Returning STILL_MOVING_REWARD')
@@ -179,8 +174,14 @@ class BallMove:
             return STILL_MOVING_REWARD
 
     def send_ball(self):
+        """
+        Performs an iteration by setting the ball to a random start
+        location, and then sleeping, waking to send rewards for a total of
+        C.NUM_POS_SENDS times.
+        """
         self.set_random_ball_state()
-        self.TIMES_UP = 0 # timer to check for missed goal
+        # self.TIMES_UP checks for missed goal
+        self.TIMES_UP = False
         SLEEP_TIME = 4.0
         for _ in range(C.NUM_POS_SENDS - 1):
             rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
@@ -189,23 +190,20 @@ class BallMove:
             if reward != 0:
                 break
         if reward == 0:
-            self.TIMES_UP = 1 # note that time is up, so either it's in the goal or not
+            # Time is up; it is either in the goal or not
+            self.TIMES_UP = True
             rospy.sleep(SLEEP_TIME / C.NUM_POS_SENDS)
             reward = self.compute_reward()
             self.ball_res_pub.publish(reward)
 
     def reset_goalie(self):
+        """
+        Moves the goalie (robot) back to its start iteration
+        """
         state = ModelState()
         state.model_name = 'turtlebot3_waffle_pi'
-        state.reference_frame = 'world'  # ''ground_plane'
-        """
-        Original version o below:
-        # pose x -5.8 y 3.4 z 0 yaw 1.570796
-        state.pose.position.x = -5.8
-        state.pose.position.y = 3.4
-        state.pose.position.z = 0
-        quaternion = quaternion_from_euler(0, 0, 1.570796)
-        """
+        state.reference_frame = 'world'
+
         state.pose.position.x = C.GOALIE_X
         # Goalie needs to be in front of goal, not in middle
         state.pose.position.y = (C.GOAL_TOP + C.GOAL_BOTTOM) / 2
@@ -227,12 +225,16 @@ class BallMove:
 
 
     def run(self):
+        """
+        Waits until another node is listening to ball_state_pub
+        and then performs 1000 iterations using send_ball
+        """
         rate = rospy.Rate(1)
-        connections = self.ball_state_pub.get_num_connections()
+        connections = self.ball_res_pub.get_num_connections()
         while connections < 1:
             rate.sleep()
-            connections = self.ball_state_pub.get_num_connections()
-
+            connections = self.ball_res_pub.get_num_connections()
+        print('im here')
         rate = rospy.Rate(1)
         NUM_SENDS = 1000
         for _ in range(NUM_SENDS):
@@ -244,6 +246,5 @@ class BallMove:
 
 
 if __name__=="__main__":
-
     bm = BallMove()
     bm.run()

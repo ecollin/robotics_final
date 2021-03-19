@@ -48,8 +48,7 @@ class Learn:
 
     def __init__(self):
         rospy.init_node('learning_algorithm')
-        # subscribe to Ball_state, ball_result
-        rospy.Subscriber("/robotics_final/ball_state", BallInitState, self.ball_state_received)
+        # Setup listeners
         rospy.Subscriber("/robotics_final/ball_result", BallResult, self.ball_result_received)
         self.get_state = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         self.set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
@@ -60,7 +59,10 @@ class Learn:
         self.reward = None
 
     def get_state_num(self):
-        # mapping the robot/ball orientation to a number
+        """
+        This function uses self.get_state to find the locations of the robot
+        and ball and returns a number in [0, NUM_STATES) representing that state
+        """
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
         ball_state = self.get_state('soccer_ball','world')
         # each object is in a "box" that is RESOLUTION meters wide.
@@ -71,27 +73,31 @@ class Learn:
         # the state is the combination of dx and dy.
         dx = int(ball_xbox - robot_xbox)
         dy = int(ball_ybox - robot_ybox)
-        #adjusting so I no longer have negative values
+        # adjusting to remove negative values for states
         dx += Learn.BOXES_X-1
         dy += Learn.BOXES_Y-1
-        #converting to unique number between 0 and NSTATES-1:
+        # converting to unique number between 0 and NSTATES-1:
         return (2*Learn.BOXES_X-1)*dy+dx
 
-    def ball_state_received(self, data):
-        print("Ball's initial state received")
-        self.current_state = data
-        self.state_num += 1
 
     def ball_result_received(self, data):
+        """
+        Handler for reward received event. Stores the reward on the class
+        """
         print(f"Reward {self.reward_num} Received, val {data.reward}")
         self.reward = data.reward
         self.reward_num += 1
 
     def set_robot(self, x, y):
-        # help from: https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
+        """
+        Given (x, y) coordinates for the gazebo world, moves the turtlebot
+        to that location using self.set
+        Reference:
+        https://www.programcreek.com/python/?code=marooncn%2Fnavbot%2Fnavbot-master%2Frl_nav%2Fscripts%2Fenv.py
+        """
         state = ModelState()
         state.model_name = 'turtlebot3_waffle_pi'
-        state.reference_frame = 'world'  # ''ground_plane'
+        state.reference_frame = 'world'
         # pose
         state.pose.position.x = x
         state.pose.position.y = y
@@ -119,13 +125,21 @@ class Learn:
 
 
     def apply_action(self, action):
+        """
+        Given an action in (self.MOVE_LEFT, self.STAY_PUT, self.MOVE_RIGHT],
+        performs that action by moving the turtlebot accordingly.
+        """
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
         robot_x = robot_state.pose.position.x
         robot_y = robot_state.pose.position.y
+<<<<<<< HEAD
         # Set the distance moved in an action such that it is at least as large as the
         # minimum distance that would let a robot in the middle of the goal go to either side
         move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
         move_dist = 0.5
+=======
+        move_dist = 1.0
+>>>>>>> 4106ed6268fa216dd412ed1860f3ba74978ee585
         if action == Learn.MOVE_LEFT:
             print("Move left")
             self.set_robot(robot_x, robot_y+ move_dist)
@@ -136,13 +150,15 @@ class Learn:
             print("Stay put")
 
     def algorithm(self):
-        threshold = 50
+        """
+        Peform the QLearning algorithm until convergence of self.Q
+        """
+        threshold = 300
         alpha = 1
         gamma = 0.5
-        while self.count < threshold:
+        while self.reward_num < threshold:
             print('------\nIteration number:', self.reward_num)
-            print(self.count,"/",threshold)
-            # select a possible action (any of them)
+            # select a possible action (any of them; all are valid)
             s = self.get_state_num()
             print("Initial state:", s)
             a = random.choice(np.arange(3))
@@ -170,11 +186,12 @@ class Learn:
         print(self.Q)
 
 
-
-    def run(self):
-        self.execute_best_actions()
-
     def execute_best_actions(self):
+        """
+        Call after self.Q has converged to, on an infinite loop,
+        get the current state and perform the action in that state with
+        highest q-value.
+        """
         while True:
             print("In execute_best_actions")
             s = self.get_state_num()
@@ -193,4 +210,4 @@ if __name__ == "__main__":
     node = Learn()
     node.algorithm()
     print("DONE LEARNING\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    node.run()
+    node.execute_best_actions()
