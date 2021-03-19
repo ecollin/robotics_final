@@ -15,6 +15,7 @@ import math
 import random
 from robotics_final.msg import BallCommand, BallResult, BallInitState
 
+
 import tf
 from tf import TransformListener
 from tf import TransformBroadcaster
@@ -57,6 +58,7 @@ class Learn:
         self.state_num = 0
         self.reward_num = 0
         self.reward = None
+        self.move_dist = 0.5
 
     def get_state_num(self):
         """
@@ -84,7 +86,7 @@ class Learn:
         """
         Handler for reward received event. Stores the reward on the class
         """
-        print(f"Reward {self.reward_num} Received, val {data.reward}")
+        #print(f"Reward {self.reward_num} Received, val {data.reward}")
         self.reward = data.reward
         self.reward_num += 1
 
@@ -124,6 +126,7 @@ class Learn:
             print("/gazebo/get_model_state service call failed")
 
 
+
     def apply_action(self, action):
         """
         Given an action in (self.MOVE_LEFT, self.STAY_PUT, self.MOVE_RIGHT],
@@ -134,14 +137,13 @@ class Learn:
         robot_y = robot_state.pose.position.y
         # Set the distance moved in an action such that it is at least as large as the
         # minimum distance that would let a robot in the middle of the goal go to either side
-        move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
-        move_dist = 0.5
+        #self.move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
         if action == Learn.MOVE_LEFT:
             print("Move left")
-            self.set_robot(robot_x, robot_y+ move_dist)
+            self.set_robot(robot_x, robot_y+self.move_dist)
         elif action == Learn.MOVE_RIGHT:
-            print("move right")
-            self.set_robot(robot_x, robot_y-move_dist)
+            print("Move right")
+            self.set_robot(robot_x, robot_y-self.move_dist)
         else:
             print("Stay put")
 
@@ -149,11 +151,14 @@ class Learn:
         """
         Peform the QLearning algorithm until convergence of self.Q
         """
-        threshold = 300
+        convergence_threshold = 50
+        reward_num_threshold = 300
         alpha = 1
         gamma = 0.5
-        while self.reward_num < threshold:
-            print('------\nIteration number:', self.reward_num)
+        while (self.reward_num < reward_num_threshold) and (self.count<convergence_threshold):
+            print('------')
+            print('Iteration', self.reward_num, '/', reward_num_threshold)
+            print('Iterations w/out Q-update:', self.count, '/', convergence_threshold)
             # select a possible action (any of them; all are valid)
             s = self.get_state_num()
             print("Initial state:", s)
@@ -161,9 +166,9 @@ class Learn:
             self.apply_action(a)
             while self.reward == None:
                 #print("Sleeping to wait for reward")
-                rospy.sleep(1)
+                rospy.sleep(0.5)
             reward = self.reward
-            print("REWARD ====", reward)
+            print("REWARD =", reward)
             self.reward = None
             if reward == 0:
                 next_state = self.get_state_num()
@@ -173,13 +178,13 @@ class Learn:
                 mx = 0
             update = self.Q[s][a] + alpha*(reward+gamma*mx-self.Q[s][a])
             if self.Q[s][a] != update:
-                print("Update Q matrix by %f" % (self.Q[s][a] - update))
+                print("Update Q matrix")
                 self.Q[s][a] = update
                 self.count = 0
             else:
                 self.count += 1
 
-        print(self.Q)
+        print("Finished calculating Q-Matrix\n\n\n\n\n\n\n")
 
 
     def execute_best_actions(self):
@@ -194,16 +199,16 @@ class Learn:
             qvals = self.Q[s]
             # Get action with largest qval
             best_action = np.argmax(qvals)
-            # We don't actually update with rewards
-            # But use them to know when to perform next action
+            # We don't actually update with rewards,
+            # but use them to know when to perform next action
+            # We want to travel 0.5 m in action's direction.
             self.apply_action(best_action)
             while self.reward == None:
-                rospy.sleep(1)
+                rospy.sleep(0.5)
             self.reward = None
 
 
 if __name__ == "__main__":
     node = Learn()
     node.algorithm()
-    print("DONE LEARNING\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
     node.execute_best_actions()
