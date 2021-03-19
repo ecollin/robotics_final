@@ -8,8 +8,11 @@ Katie Hughes, Elizabeth Singer, Enrique Collin
 
 ## How to run:
 Terminal 1: roscore
+
 Terminal 2: roslaunch robotics_final turtlebot3_pong.launch
+
 Terminal 3: rosrun robotics_final ball_move.py
+
 Terminal 4: rosrun robotics_final learning.py
 
 ## Project Description
