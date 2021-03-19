@@ -205,6 +205,7 @@ class Learn:
             self.apply_action(best_action)
             while self.reward == None:
                 rospy.sleep(0.5)
+            print("Reward =", self.reward)
             self.reward = None
 
 
