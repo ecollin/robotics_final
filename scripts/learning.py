@@ -132,14 +132,10 @@ class Learn:
         robot_state = self.get_state('turtlebot3_waffle_pi','world')
         robot_x = robot_state.pose.position.x
         robot_y = robot_state.pose.position.y
-<<<<<<< HEAD
         # Set the distance moved in an action such that it is at least as large as the
         # minimum distance that would let a robot in the middle of the goal go to either side
         move_dist = max(((C.GOAL_TOP + C.GOAL_BOTTOM) / 2) / C.NUM_POS_SENDS, 0.5)
         move_dist = 0.5
-=======
-        move_dist = 1.0
->>>>>>> 4106ed6268fa216dd412ed1860f3ba74978ee585
         if action == Learn.MOVE_LEFT:
             print("Move left")
             self.set_robot(robot_x, robot_y+ move_dist)
